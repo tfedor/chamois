@@ -1,0 +1,38 @@
+#!/usr/bin/env ruby
+
+# require 'chamois/cli'
+# Sudoku::CLI.new(ARGV)
+
+require 'thor'
+require 'chamois/application'
+
+class ChamoisCLI < Thor
+
+#  desc "Say Hello"
+#  method_option :name, :aliases => "-n", :desc => "Specify a name"
+#  def hello
+#    puts "Hello #{options[:name]}"
+#  end
+
+public
+
+  desc "deploy STAGE", "Deploy"
+  def deploy(stage)
+    app = Chamois::Application.new(stage)
+    app.connect
+    app.deploy
+    app.disconnect
+  end
+
+#  def release
+#  end
+
+#  def rollback
+#  end
+
+#  def test
+#  end
+  
+end
+
+ChamoisCLI.start(ARGV)
