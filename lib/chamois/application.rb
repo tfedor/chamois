@@ -77,21 +77,34 @@ module Chamois
     def deploy
       rules_config = load_config('_deploy/rules.yaml')
 
+      release = Time.now.strftime("%Y-%m-%d_%H%M%S.%L").to_s
+
       begin
-        @targets.each { |t| t.deploy(files, rules_config) }
+        @targets.each { |t| t.deploy(release, files, rules_config) }
         Msg::ok("Deploy complete")
       rescue Exception => e
         Msg::fail e
-        disconnect
       end
     end
 
     def release
-      @targets.each { |t| t.release }
+      begin
+        @targets.each { |t| t.release }
+        Msg::ok("Release complete")
+      rescue Exception => e
+        Msg::fail e
+        Msg::fail("WARNING! May be at inconsistent state!")
+      end
     end
 
     def rollback
-      @targets.each { |t| t.rollback }
+      begin
+        @targets.each { |t| t.rollback }
+        Msg::ok("Rollback complete")
+      rescue Exception => e
+        Msg::fail e
+        Msg::fail("WARNING! May be at inconsistent state!")
+      end
     end
   end
 end

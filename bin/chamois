@@ -24,14 +24,21 @@ public
     app.disconnect
   end
 
-#  def release
-#  end
+  desc "release STAGE", "Release"
+  def release(stage)
+    app = Chamois::Application.new(stage)
+    app.connect
+    app.release
+    app.disconnect
+  end
 
-#  def rollback
-#  end
-
-#  def test
-#  end
+  desc "rollback STAGE", "Rollback"
+  def rollback(stage)
+    app = Chamois::Application.new(stage)
+    app.connect
+    app.rollback
+    app.disconnect
+  end
   
 end
 

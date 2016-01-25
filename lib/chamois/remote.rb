@@ -44,16 +44,11 @@ module Chamois
       Msg::ok "Disconnected from #{@name}"
     end
 
-    def check_dir(dir)
-      # TODO check permissions as well
-      Msg::info("#{@name}: Checking #{path dir}", " ... ")
-
+    def exists?(pathname)
       begin
-        @sess.sftp.lstat!(path dir)
-        Msg::ok
+        @sess.sftp.lstat!(path pathname)
         true
       rescue Net::SFTP::StatusException => e
-        Msg::fail
         false
       end
     end
@@ -86,8 +81,6 @@ module Chamois
         end
       end
 
-      puts dirs.to_a.sort!
-
       dirs.each do |d|
         make_dir release_path(d, release)
       end
@@ -105,6 +98,53 @@ module Chamois
         @sess.sftp.upload!(f, path(f, release))
         Msg::ok
       end
+    end
+
+    def read_dir(dir)
+      @sess.sftp.dir.entries path(dir)
+    end
+
+    def remove(p)
+      @sess.sftp.remove! path p
+    end
+
+    def link!(lnk, target)
+      raise "Target does not exist" unless exists?(target)
+      remove(lnk) if exists?(lnk)
+      @sess.sftp.symlink! target, path(lnk)
+    end
+
+    def open(p, flag)
+      file = @sess.sftp.open!(p, flag)
+      yield file
+      @sess.sftp.close!(file)
+    end
+
+    def make_file(file, release, content)
+      Msg::info("#{@name}: Writing release info", ' ... ')
+      open(path(file, release), 'w') { |f| @sess.sftp.write!(f, 0, content) }
+      Msg::ok
+    end
+
+    def read(file)
+      content = nil
+      open(path(file), 'r') do |f|
+        offset = 0
+        length = 1024
+        content = ''
+        while 1
+          chunk = @sess.sftp.read!(f, offset, length)
+          break unless chunk
+
+          content += chunk
+          offset += length
+        end
+      end
+      content
+    end
+
+    def read_link(link)
+      @sess.sftp.readlink!(path link).name.split("/").last
     end
 
   end
