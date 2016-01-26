@@ -103,4 +103,4 @@ api:
 
 ```
 
-This file contains definitions of 3 rulesets: `prod`, `front and `api`. Each ruleset takes `exclude` or `include` rules, which should be self-explanatory. Notice you may use asterisk (*) as a wildcard.
+This file contains definitions of 3 rulesets: `prod`, `front` and `api`. Each ruleset takes `exclude` or `include` rules, which should be self-explanatory. Notice you may use asterisk (*) as a wildcard.
