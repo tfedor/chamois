@@ -4,7 +4,7 @@ module Chamois
     private
 
     def filter(files, rule)
-      rule_escaped = Regexp.escape(rule).gsub('*', '.*?')
+      rule_escaped = Regexp.escape(rule).gsub('\\*', '.*?')
       rule_regexp = /^#{rule_escaped}/
 
       files.select { |f| (f.match(rule_regexp)) }.to_set
@@ -18,22 +18,13 @@ module Chamois
     # If there are also exclude rules, start with all files,
     # exclude ones that match exclude rules and after that add
     # all files that match include rules
-    def matching_files(all_files, ruleset)
+    def matching_files(all_files, rules)
       files = Set.new
 
-      if ruleset.key? 'exclude'
-        files = all_files.to_set
+      files = all_files.to_set if rules['exclude'].length != 0
 
-        ruleset['exclude'].each do |rule|
-          files.subtract filter(all_files, rule)
-        end
-      end
-
-      if ruleset.key? 'include'
-        ruleset['include'].each do |rule|
-          files.merge filter(all_files, rule)
-        end
-      end
+      rules['exclude'].each { |rule| files.subtract filter(all_files, rule) }
+      rules['include'].each { |rule| files.merge    filter(all_files, rule) }
 
       files
     end
@@ -74,11 +65,19 @@ module Chamois
         deploy_files = files.to_set
         Msg.info('No rules set for this target, uploading all files')
       else
-        deploy_files = Set.new
+        rules = {
+          'exclude' => [],
+          'include' => [],
+        }
+
         @session.rules.each do |rule|
           fail "Rule #{rule} is not defined" unless rules_config.key? rule
-          deploy_files.merge matching_files(files, rules_config[rule])
+          ruleset = rules_config[rule]
+          rules['exclude'].concat ruleset['exclude'] if ruleset.key? 'exclude'
+          rules['include'].concat ruleset['include'] if ruleset.key? 'include'
         end
+
+        deploy_files = matching_files(files, rules)
       end
 
       fail 'No files to deploy' if deploy_files.empty?
