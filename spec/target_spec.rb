@@ -35,6 +35,9 @@ describe Chamois::Target do
       expect(remote_mock).to receive(:exists?).with('releases/') { true }
       expect(remote_mock).to receive(:make_dir).with('releases/01/')
 
+      # checks rules
+      expect(remote_mock).to receive(:rules) { Hash.new }
+
       # call upload
       expect(remote_mock).to receive(:upload).with(files.to_set, 'releases/01/')
 

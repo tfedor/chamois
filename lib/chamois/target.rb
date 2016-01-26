@@ -19,7 +19,7 @@ module Chamois
     # If there are also exclude rules, start with all files,
     # exclude ones that match exclude rules and after that add
     # all files that match include rules
-    def files(all_files, ruleset)
+    def matching_files(all_files, ruleset)
       files = Set.new
 
       if ruleset.key? 'exclude'
@@ -71,23 +71,25 @@ module Chamois
 
       raise "Release already exists" if @session.exists?('releases/' + release + '/')
 
+      # get files to deploy
+      if @session.rules.empty?
+        deploy_files = files.to_set
+        Msg::info("No rules set for this target, uploading all files")
+      else
+        deploy_files = Set.new
+        @session.rules.each do |rule|
+          raise "Rule #{rule} is not defined" unless rules_config.key? rule
+          deploy_files.merge matching_files(files, rules_config[rule])
+        end
+      end
+
+      raise "No files to deploy" if deploy_files.empty?
+
       # check if releases folder exists
       @session.make_dir("releases/") unless @session.exists?("releases/")
 
       release_dir = 'releases/' + release + '/'
       @session.make_dir(release_dir)
-
-      # get files to deploy
-      if rules_config.empty?
-        deploy_files = files.to_set
-      else
-        deploy_files = Set.new
-
-        @session.rules.each do |rule|
-          raise "Rule #{rule} is not defined" unless rules_config.key? rule
-          deploy_files.merge files(files, rules_config[rule])
-        end
-      end
 
       # upload files
       @session.upload(deploy_files, release_dir)
