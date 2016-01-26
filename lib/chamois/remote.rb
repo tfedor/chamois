@@ -2,20 +2,38 @@
 module Chamois
   class Remote
 
-
   private
 
+    # Trim whitespace from beginning and end
+    # and forward slashes from end of the path
     def rtrim(p)
-      p.strip.gsub(/\/*$/, '')
+      p.strip.gsub(/\/*\s*$/, '')
     end
 
-    def release_path(p, release)
-      'releases/' + release + '/' + p
-    end
-
-    def path(p, release=nil)
-      return @root + release_path(p, release) if release
+    def path(p)
       @root + p
+    end
+
+    # Ensure that all directories used in files' paths are created
+    # in correct directory
+    def ensure_dirs(files, target_dir)
+      
+      target = rtrim(target_dir) + '/'
+
+      dirs = Set.new # use to prevent more expensive check
+      files.each do |f|
+        p = f.split('/')
+        p.pop
+        
+        dir = target
+        p.each do |d|
+          dir += d + '/'
+
+          next if dirs.include? dir
+          make_dir dir unless exists? dir
+          dirs.add(dir)
+        end
+      end
     end
 
   public
@@ -39,7 +57,7 @@ module Chamois
       Msg::ok "Connected to #{@name}"
     end
 
-    def close
+    def disconnect
       @sess.close
       Msg::ok "Disconnected from #{@name}"
     end
@@ -59,59 +77,25 @@ module Chamois
       begin
         @sess.sftp.mkdir!(path dir)
         Msg::ok
-        true
       rescue Net::SFTP::StatusException => e
         Msg::fail
-        false
       end
     end
 
-    def make_dir_tree(files, release)
-      
-      dirs = Set.new
-
-      files.each do |f|
-        p = f.split('/')
-        p.pop
-        
-        dir_path = ''
-        p.each do |d|
-          dir_path += d + '/'
-          dirs.add(dir_path)
-        end
-      end
-
-      dirs.each do |d|
-        make_dir release_path(d, release)
-      end
+    def make_file(file, content)
+      Msg::info("#{@name}: Writing release info", ' ... ')
+      open(path(file), 'w') { |f| @sess.sftp.write!(f, 0, content) }
+      Msg::ok
     end
 
-    def upload(files, release)
-      files.each do |f|
-        Msg::info("#{@name}: Uploading #{f} to #{path f, release}", " ... ")
-
-        if !File.exists?(f)
-          Msg::fail(" SKIPPED (file does not exist)")
-          next
-        end
-
-        @sess.sftp.upload!(f, path(f, release))
-        Msg::ok
-      end
-    end
-
-    def read_dir(dir)
-      @sess.sftp.dir.entries path(dir)
+    def make_link!(lnk, target)
+      raise "Symlink target does not exist" unless exists?(target)
+      remove(lnk) if exists?(lnk)
+      @sess.sftp.symlink! target, path(lnk)
     end
 
     def remove(p)
-      @sess.sftp.remove! path p
-    end
-
-    def link!(lnk, target)
-      raise "Target does not exist" unless exists?(target)
-      remove(lnk) if exists?(lnk)
-      @sess.sftp.symlink! target, path(lnk)
+      @sess.sftp.remove! path(p)
     end
 
     def open(p, flag)
@@ -120,13 +104,7 @@ module Chamois
       @sess.sftp.close!(file)
     end
 
-    def make_file(file, release, content)
-      Msg::info("#{@name}: Writing release info", ' ... ')
-      open(path(file, release), 'w') { |f| @sess.sftp.write!(f, 0, content) }
-      Msg::ok
-    end
-
-    def read(file)
+    def read_file(file)
       content = nil
       open(path(file), 'r') do |f|
         offset = 0
@@ -143,9 +121,29 @@ module Chamois
       content
     end
 
+    def read_dir(dir)
+      @sess.sftp.dir.entries path(dir)
+    end
+
     def read_link(link)
       @sess.sftp.readlink!(path link).name.split("/").last
     end
 
+    def upload(files, dir)
+      ensure_dirs(files, dir)
+
+      files.each do |f|
+        target = path(rtrim(dir) + '/' + f)
+        Msg::info("#{@name}: Uploading #{f} to #{target}", " ... ")
+
+        if !File.exists?(f)
+          Msg::fail(" SKIPPED (file does not exist)")
+          next
+        end
+
+        @sess.sftp.upload!(f, target)
+        Msg::ok
+      end
+    end
   end
 end
