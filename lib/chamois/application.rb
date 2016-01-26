@@ -65,9 +65,10 @@ module Chamois
         rescue Exception => e
           Msg::fail e
           disconnect
-          raise e
+          return false
         end
       end
+      true
     end
 
     # Disconnect all targets
