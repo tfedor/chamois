@@ -2,7 +2,6 @@ require 'thor'
 require 'chamois/application'
 
 class ChamoisCLI < Thor
-
   private
 
   def run(stage)
@@ -15,35 +14,35 @@ class ChamoisCLI < Thor
 
   public
 
-  desc "deploy STAGE", "Deploy given stage to all targets"
+  desc 'deploy STAGE', 'Deploy given stage to all targets'
   def deploy(stage)
-    run(stage) { |app| app.deploy }
+    run(stage, &:deploy)
   end
 
-  desc "dp STAGE", "Deploy alias"
+  desc 'dp STAGE', 'Deploy alias'
   def dp(stage)
     deploy(stage)
   end
 
-  desc "release STAGE", "Set last deployed release as current release at given stage"
+  desc 'release STAGE', 'Set last deployed release as current release at given stage'
   def release(stage)
-    run(stage) { |app| app.release }
+    run(stage, &:release)
   end
 
-  desc "rl STAGE", "Release alias"
+  desc 'rl STAGE', 'Release alias'
   def rl(stage)
     release(stage)
   end
 
-  desc "rollback STAGE", "Rollback to previously used relese at given stage"
+  desc 'rollback STAGE', 'Rollback to previously used relese at given stage'
   def rollback(stage)
-    run(stage) { |app| app.rollback }
+    run(stage, &:rollback)
   end
 
-  desc "rb STAGE", "Rollback alias"
+  desc 'rb STAGE', 'Rollback alias'
   def rb(stage)
     rollback(stage)
-  end  
+  end
 end
 
 ChamoisCLI.start(ARGV)

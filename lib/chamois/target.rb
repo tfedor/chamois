@@ -1,11 +1,10 @@
 
 module Chamois
   class Target
-
-  private
+    private
 
     def filter(files, rule)
-      rule_escaped = Regexp.escape(rule).gsub("\\*", ".*?")
+      rule_escaped = Regexp.escape(rule).gsub('*', '.*?')
       rule_regexp = /^#{rule_escaped}/
 
       files.select { |f| (f.match(rule_regexp)) }.to_set
@@ -57,7 +56,7 @@ module Chamois
       'releases/' + release + '/' + p
     end
 
-  public
+    public
 
     def initialize(remote)
       @session = remote
@@ -68,25 +67,24 @@ module Chamois
     end
 
     def deploy(release, files, rules_config)
-
-      raise "Release already exists" if @session.exists?('releases/' + release + '/')
+      fail 'Release already exists' if @session.exists?('releases/' + release + '/')
 
       # get files to deploy
       if @session.rules.empty?
         deploy_files = files.to_set
-        Msg::info("No rules set for this target, uploading all files")
+        Msg.info('No rules set for this target, uploading all files')
       else
         deploy_files = Set.new
         @session.rules.each do |rule|
-          raise "Rule #{rule} is not defined" unless rules_config.key? rule
+          fail "Rule #{rule} is not defined" unless rules_config.key? rule
           deploy_files.merge matching_files(files, rules_config[rule])
         end
       end
 
-      raise "No files to deploy" if deploy_files.empty?
+      fail 'No files to deploy' if deploy_files.empty?
 
       # check if releases folder exists
-      @session.make_dir("releases/") unless @session.exists?("releases/")
+      @session.make_dir('releases/') unless @session.exists?('releases/')
 
       release_dir = 'releases/' + release + '/'
       @session.make_dir(release_dir)
@@ -98,33 +96,33 @@ module Chamois
       cham_file = current_release + "\n" + `git rev-parse HEAD`.strip + "\n"
       @session.make_file(release_dir + '.chamois', cham_file)
 
-      Msg::ok("Deploy to #{@session.name} complete")
+      Msg.ok("Deploy to #{@session.name} complete")
     end
 
     def release
       rls = top_release
-      raise "No release found" if rls.nil?
+      fail 'No release found' if rls.nil?
 
       if rls == current_release
-        Msg::info("#{@session.name} currently at last release")
+        Msg.info("#{@session.name} currently at last release")
         return
       end
 
-      Msg::info("Releasing #{rls} at #{@session.name}")
+      Msg.info("Releasing #{rls} at #{@session.name}")
       @session.make_link!('current', 'releases/' + rls + '/')
-      Msg::ok("Release at #{@session.name} complete")
+      Msg.ok("Release at #{@session.name} complete")
     end
 
     def rollback
-      raise "Can't roll back, no release found" unless @session.exists?('current/.chamois')
+      fail "Can't roll back, no release found" unless @session.exists?('current/.chamois')
 
       cham = @session.read_file('current/.chamois')
       prev_release = cham.split("\n")[0]
-      raise "Can't roll back, currently at first release" if prev_release == '.'
+      fail "Can't roll back, currently at first release" if prev_release == '.'
 
-      Msg::info("Rolling #{@session.name} back to release " + prev_release)
+      Msg.info("Rolling #{@session.name} back to release " + prev_release)
       @session.make_link!('current', 'releases/' + prev_release)
-      Msg::ok("Rollback at #{@session.name} complete")
+      Msg.ok("Rollback at #{@session.name} complete")
     end
   end
 end

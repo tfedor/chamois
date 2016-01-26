@@ -5,8 +5,7 @@ require_relative '../lib/chamois/msg'
 require_relative 'spec_helper'
 
 describe Chamois::Target do
-  
-  let!(:remote_mock) { instance_double("Chamois::Remote") }
+  let!(:remote_mock) { instance_double('Chamois::Remote') }
   subject(:c) { described_class.new(remote_mock) }
 
   let(:release) { '01' }
@@ -27,7 +26,6 @@ describe Chamois::Target do
 
   describe 'Deployment' do
     it 'Deploys without rules' do
-      
       # checks whether release exists
       expect(remote_mock).to receive(:exists?).with('releases/01/') { false }
 
@@ -73,7 +71,6 @@ describe Chamois::Target do
   end
 
   describe 'Rollback' do
-
     it 'Fails to rollback when no release found' do
       expect(remote_mock).to receive(:exists?) { false }
       expect { c.rollback }.to raise_error(RuntimeError)
@@ -89,9 +86,8 @@ describe Chamois::Target do
       expect(remote_mock).to receive(:exists?) { true }
       expect(remote_mock).to receive(:read_file) { "01\ngit_HEAD_hash\n" }
       expect(remote_mock).to receive(:make_link!).with('current', 'releases/01')
-      
+
       expect { c.rollback }.to output(/Rollback at test complete/).to_stdout
     end
   end
-  
 end

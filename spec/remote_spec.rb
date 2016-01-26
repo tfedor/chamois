@@ -9,23 +9,23 @@ require_relative 'spec_helper'
 
 describe Chamois::Remote do
   subject(:r) { described_class.new(name, config) }
-  let(:name) { "test" }
+  let(:name) { 'test' }
   let(:config) do
     {
-      'host' => "server_host",
+      'host' => 'server_host',
       'port' => 22,
-      'user' => "server_user",
-      'root' => "server/root/"
+      'user' => 'server_user',
+      'root' => 'server/root/'
     }
   end
 
-  let!(:ssh_class_mock) { class_double("Net::SSH").as_stubbed_const(:transfer_nested_constants => true) }
-  let!(:ssh_sess_mock) { instance_double("Net::SSH::Session") }
-  let!(:sftp_sess_mock) { instance_double("Net::SFTP::Session") }
-  
+  let!(:ssh_class_mock) { class_double('Net::SSH').as_stubbed_const(transfer_nested_constants: true) }
+  let!(:ssh_sess_mock) { instance_double('Net::SSH::Session') }
+  let!(:sftp_sess_mock) { instance_double('Net::SFTP::Session') }
+
   before(:each) do
     expect(ssh_class_mock)
-      .to receive(:start).with("server_host", "server_user", {port: 22})
+      .to receive(:start).with('server_host', 'server_user', port: 22)
       .and_return(ssh_sess_mock)
 
     allow(ssh_sess_mock)
@@ -51,18 +51,18 @@ describe Chamois::Remote do
     end
 
     it 'Returns full path from user\'s root' do
-      expect(r.instance_eval {path('path/to/folder') }).to match('server/root/path/to/folder')
+      expect(r.instance_eval { path('path/to/folder') }).to match('server/root/path/to/folder')
     end
   end
 
   describe 'Symlink' do
     before(:each) do
-      resp_mock = instance_double("Net::SFTP::Response")
+      resp_mock = instance_double('Net::SFTP::Response')
       allow(resp_mock).to receive(:code)
       allow(resp_mock).to receive(:message)
 
       allow(sftp_sess_mock).to receive(:lstat!) do |path|
-        raise Net::SFTP::StatusException, resp_mock unless path == 'server/root/test' || path == 'server/root/correct/target'
+        fail Net::SFTP::StatusException, resp_mock unless path == 'server/root/test' || path == 'server/root/correct/target'
       end
     end
 
@@ -86,14 +86,14 @@ describe Chamois::Remote do
     end
 
     it 'Checks link target exists' do
-      expect{ r.make_link!('test', 'incorrect/target') }.to raise_error(RuntimeError)
+      expect { r.make_link!('test', 'incorrect/target') }.to raise_error(RuntimeError)
     end
 
     it 'Reads link correctly' do
-      name_mock = instance_double("Net::SFTP::Protocol::V01::Name")
+      name_mock = instance_double('Net::SFTP::Protocol::V01::Name')
       allow(name_mock).to receive(:name) { 'path/to/link/target' }
 
-      expect(sftp_sess_mock).to receive(:readlink!).with("server/root/link").and_return(name_mock)
+      expect(sftp_sess_mock).to receive(:readlink!).with('server/root/link').and_return(name_mock)
       expect(r.read_link 'link').to match('target')
     end
   end
@@ -119,7 +119,7 @@ describe Chamois::Remote do
 
     it 'Ensures directories exist' do
       expect(r).to receive(:exists?).exactly(11).times do |arg|
-         arg =='releases/01/logs/'
+        arg == 'releases/01/logs/'
       end
 
       expect(r).to receive(:make_dir).with('releases/01/modules/')
@@ -142,15 +142,15 @@ describe Chamois::Remote do
       expect(r).to receive(:ensure_dirs).with(files, 'releases/01')
 
       # all files locally exist
-      file_mock = class_double("File").as_stubbed_const(:transfer_nested_constants => true)
-      allow(file_mock).to receive(:exists?) {true}
+      file_mock = class_double('File').as_stubbed_const(transfer_nested_constants: true)
+      allow(file_mock).to receive(:exist?) { true }
 
       # upload! is called for each file with correct folder prepended
       files.each do |f|
         expect(sftp_sess_mock).to receive(:upload!).with(f, 'server/root/releases/01/' + f)
       end
 
-      expect { r.upload(files, 'releases/01') }.to output.to_stdout      
+      expect { r.upload(files, 'releases/01') }.to output.to_stdout
     end
   end
 end
