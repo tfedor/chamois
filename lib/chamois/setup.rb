@@ -34,7 +34,7 @@ module Chamois
         setup[stage] = {}
 
         Msg.ok 'STAGE ' + stage
-        Msg.ok "List targets's names, separate by space:"
+        Msg.ok "List targets' names, separate by space:"
         print '> '
         begin
           targets = Array(STDIN.gets.strip!.split(/\s+/))
@@ -66,8 +66,8 @@ module Chamois
         f.write setup.to_yaml
       end
 
-      rules.each do |target|
-        rules[target]['exclude'] = ['.*']
+      rules.keys.each do |target|
+        rules[target] = {'exclude' => ['.*']}
       end
       File.open('_deploy/rules.yaml', 'w') do |f|
         f.write rules.to_yaml
