@@ -15,7 +15,7 @@ class ChamoisCLI < Thor
 
   public
 
-  desc '', ''
+  desc 'init', 'Starts initial setup'
   def init()
     setup = Chamois::Setup.new()
     setup.setup

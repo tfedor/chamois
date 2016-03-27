@@ -6,7 +6,7 @@ Chamois let's you deploy your code to multiple environments defined by stages (e
 
 ## Development
 
-Chamois is currently under development. I plan to use it on personal projects and further change it as I see fit, so whole interface and logic change.
+I plan to use Chamois on personal projects and further change it as I see fit, so whole interface and logic may change (but probably won't).
 
 The ability to patch current release, instead of pushing whole code each time will be neccessary feature.
 
@@ -39,6 +39,8 @@ cham rb STAGE
 ## Setup
 
 Chamois uses two yaml files to set up your deployment, one of which is optional. In your project's root create folder `_deploy`. Here you'll put your `stages.yaml` and `rules.yaml` file.
+
+You can run ```chamois init``` or ```cham init``` to run initial setup.
 
 ### Stages
 
