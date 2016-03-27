@@ -66,8 +66,11 @@ module Chamois
         f.write setup.to_yaml
       end
 
+      rules.each do |target|
+        rules[target]['exclude'] = ['.*']
+      end
       File.open('_deploy/rules.yaml', 'w') do |f|
-        f.write setup.to_yaml
+        f.write rules.to_yaml
       end
     end
   end
