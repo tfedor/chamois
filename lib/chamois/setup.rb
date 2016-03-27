@@ -9,7 +9,7 @@ module Chamois
           Msg.fail('It seems like you have already set Chamois up.')
           Msg.fail('Do you want to rewrite your current setup? (y/n) ', '')
           confirm = STDIN.gets
-          return if confirm[0] != 'n'
+          return if confirm[0] != 'y'
         end
       else
         Dir.mkdir '_deploy'
