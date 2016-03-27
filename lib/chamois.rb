@@ -1,5 +1,6 @@
 require 'thor'
 require 'chamois/application'
+require 'chamois/setup'
 
 class ChamoisCLI < Thor
   private
@@ -13,6 +14,12 @@ class ChamoisCLI < Thor
   end
 
   public
+
+  desc '', ''
+  def init()
+    setup = Chamois::Setup.new()
+    setup.setup
+  end
 
   desc 'deploy STAGE', 'Deploy given stage to all targets'
   def deploy(stage)
