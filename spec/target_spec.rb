@@ -13,8 +13,15 @@ describe Chamois::Target do
     [
       'api/endpoint.rb',
       'classes/core/base.rb',
-      'bootloader.rb'
+      'bootloader.rb',
     ]
+  end
+  let(:map) do
+    {
+        'api/endpoint.rb' => 'api/endpoint.rb',
+        'classes/core/base.rb' => 'classes/core/base.rb',
+        'bootloader.rb' => 'bootloader.rb',
+    }
   end
   let(:rules) do
     {}
@@ -37,7 +44,7 @@ describe Chamois::Target do
       expect(remote_mock).to receive(:rules) { Hash.new }
 
       # call upload
-      expect(remote_mock).to receive(:upload).with(files.to_set, 'releases/01/')
+      expect(remote_mock).to receive(:upload).with(map, 'releases/01/')
 
       # create .chamois file
       expect(c).to receive(:current_release) { '.' }

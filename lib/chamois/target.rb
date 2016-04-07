@@ -3,11 +3,13 @@ module Chamois
   class Target
     private
 
-    def filter(files, rule)
+    def rule_regexp(rule)
       rule_escaped = Regexp.escape(rule).gsub('\\*', '.*?').gsub('\\^/', '(^|/)')
-      rule_regexp = /^#{rule_escaped}/
+      /^#{rule_escaped}/
+    end
 
-      files.select { |f| (f.match(rule_regexp)) }.to_set
+    def filter(files, rule)
+      files.select { |f| (f.match rule_regexp(rule)) }.to_set
     end
 
     # Return set of all files that match rules in given ruleset
@@ -27,6 +29,23 @@ module Chamois
       rules['include'].each { |rule| files.merge    filter(all_files, rule) }
 
       files
+    end
+
+    def deploy_map(files, rules)
+      deploy_map = {}
+
+      files.each do |f|
+        rules.each do |rule_match, rule_replace|
+          regexp_match = rule_regexp(rule_match)
+          next unless f.match regexp_match
+
+          deploy_map[f] = f.gsub(regexp_match, rule_replace)
+        end
+
+        deploy_map[f] = f unless deploy_map.key? f
+      end
+
+      deploy_map
     end
 
     # Get current release or '.' if there's no other release
@@ -62,12 +81,13 @@ module Chamois
 
       # get files to deploy
       if @session.rules.empty?
-        deploy_files = files.to_set
+        deploy_files = deploy_map(files.to_set, {})
         Msg.info('No rules set for this target, uploading all files')
       else
         rules = {
           'exclude' => [],
           'include' => [],
+          'rename' => {}
         }
 
         @session.rules.each do |rule|
@@ -75,9 +95,10 @@ module Chamois
           ruleset = rules_config[rule]
           rules['exclude'].concat ruleset['exclude'] if ruleset.key? 'exclude'
           rules['include'].concat ruleset['include'] if ruleset.key? 'include'
+          rules['rename'].merge ruleset['rename'] if ruleset.key? 'rename'
         end
 
-        deploy_files = matching_files(files, rules)
+        deploy_files = deploy_map(matching_files(files, rules), rules['rename'])
       end
 
       fail 'No files to deploy' if deploy_files.empty?

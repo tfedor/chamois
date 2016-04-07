@@ -100,31 +100,29 @@ describe Chamois::Remote do
 
   describe 'Upload' do
     let(:files) do
-      [
-        'modules/classA/file1.rb',
-        'modules/classA/file2.rb',
-        'modules/classA/file3.rb',
-        'modules/classB/some_class.rb',
-        'api/endpoint.rb',
-        'api/query.rb',
-        '.gitignore',
-        'some/very/long/path/to/dir/file',
-        'some/files.rb',
-        'logs/2016.txt',
-        'logs/2015.txt',
-        'logs/2014.txt',
-        'logs/2013.txt'
-      ]
+      {
+        'modules/classA/file1.rb' => 'modules/classA_file1.rb',
+        'modules/classA/file2.rb' => 'modules/classA_file2.rb',
+        'modules/classA/file3.rb' => 'modules/classA_file3.rb',
+        'modules/classB/some_class.rb' => 'modules/classB_some_class.rb',
+        'api/endpoint.rb' => 'api/endpoint.rb',
+        'api/query.rb' => 'api/query.rb',
+        '.gitignore' => '.gitignore',
+        'some/very/long/path/to/dir/file' => 'some/very/long/path/to/dir/file',
+        'some/files.rb' => 'some/files.rb',
+        'logs/2016.txt' => 'logs/2016.txt',
+        'logs/2015.txt' => 'logs/2015.txt',
+        'logs/2014.txt' => 'logs/2014.txt',
+        'logs/2013.txt' => 'logs/2013.txt',
+      }
     end
 
     it 'Ensures directories exist' do
-      expect(r).to receive(:exists?).exactly(11).times do |arg|
+      expect(r).to receive(:exists?).exactly(9).times do |arg|
         arg == 'releases/01/logs/'
       end
 
       expect(r).to receive(:make_dir).with('releases/01/modules/')
-      expect(r).to receive(:make_dir).with('releases/01/modules/classA/')
-      expect(r).to receive(:make_dir).with('releases/01/modules/classB/')
       expect(r).to receive(:make_dir).with('releases/01/api/')
       expect(r).to receive(:make_dir).with('releases/01/some/')
       expect(r).to receive(:make_dir).with('releases/01/some/very/')
@@ -134,20 +132,20 @@ describe Chamois::Remote do
       expect(r).to receive(:make_dir).with('releases/01/some/very/long/path/to/dir/')
 
       list = files
-      r.instance_eval { ensure_dirs(list, 'releases/01') }
+      r.instance_eval { ensure_dirs(list.values, 'releases/01') }
     end
 
     it 'Uploads files' do
       # ensure dirs is properly called
-      expect(r).to receive(:ensure_dirs).with(files, 'releases/01')
+      expect(r).to receive(:ensure_dirs).with(files.values, 'releases/01')
 
       # all files locally exist
       file_mock = class_double('File').as_stubbed_const(transfer_nested_constants: true)
       allow(file_mock).to receive(:exist?) { true }
 
       # upload! is called for each file with correct folder prepended
-      files.each do |f|
-        expect(sftp_sess_mock).to receive(:upload!).with(f, 'server/root/releases/01/' + f)
+      files.each do |local, remote|
+        expect(sftp_sess_mock).to receive(:upload!).with(local, 'server/root/releases/01/' + remote)
       end
 
       expect { r.upload(files, 'releases/01') }.to output.to_stdout

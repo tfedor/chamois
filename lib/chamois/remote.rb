@@ -128,18 +128,18 @@ module Chamois
     end
 
     def upload(files, dir)
-      ensure_dirs(files, dir)
+      ensure_dirs(files.values, dir)
 
-      files.each do |f|
-        target = path(rtrim(dir) + '/' + f)
-        Msg.info("#{@name}: Uploading #{f} to #{target}", ' ... ')
+      files.each do |local, remote|
+        target = path(rtrim(dir) + '/' + remote)
+        Msg.info("#{@name}: Uploading #{local} to #{target}", ' ... ')
 
-        if !File.exist?(f)
+        unless File.exist?(local)
           Msg.fail(' SKIPPED (file does not exist)')
           next
         end
 
-        @sess.sftp.upload!(f, target)
+        @sess.sftp.upload!(local, target)
         Msg.ok
       end
     end
