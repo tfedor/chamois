@@ -4,7 +4,7 @@ module Chamois
     private
 
     def filter(files, rule)
-      rule_escaped = Regexp.escape(rule).gsub('\\*', '.*?')
+      rule_escaped = Regexp.escape(rule).gsub('\\*', '.*?').gsub('\\^/', '(^|/)')
       rule_regexp = /^#{rule_escaped}/
 
       files.select { |f| (f.match(rule_regexp)) }.to_set
