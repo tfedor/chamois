@@ -1,6 +1,7 @@
 
 require 'yaml'
 require 'set'
+require 'find'
 require 'net/ssh'
 require 'net/scp'
 require 'net/sftp'
@@ -13,11 +14,7 @@ module Chamois
     private
 
     def files
-      git_branch = `git symbolic-ref --short HEAD`.strip
-      git_files = `git ls-tree -r #{git_branch} --name-only`.split("\n")
-
-      git_files.each(&:strip!)
-      git_files
+      Dir['**/*'].reject { |f| File.directory? f }
     end
 
     def read_config(path)

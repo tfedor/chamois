@@ -4,8 +4,15 @@ module Chamois
     private
 
     def rule_regexp(rule)
-      rule_escaped = Regexp.escape(rule).gsub('\\*', '.*?').gsub('\\^/', '(^|/)')
-      /^#{rule_escaped}/
+      rule_escaped = Regexp.escape(rule).gsub('\\*', '.*?')
+
+      if rule_escaped[0] == '/'
+        rule_escaped.sub!(/^\//, '(^|/)')
+      else
+        rule_escaped = '^' + rule_escaped
+      end
+
+      /#{rule_escaped}/
     end
 
     def filter(files, rule)
