@@ -1,7 +1,7 @@
 # coding: utf-8
 Gem::Specification.new do |spec|
   spec.name          = "chamois"
-  spec.version       = '0.1.0'
+  spec.version       = '0.1.1'
   spec.authors       = ["Tomáš Fedor"]
   spec.email         = ["tomas.fedor3@gmail.com"]
 
@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
     Also allows to set up rules to tell where to deploy (or not deploy) specific files.
   EOF
 
-#  spec.homepage      = "TODO"
+  spec.homepage      = "https://github.com/tfedor/chamois"
   spec.license       = "MIT"
 
   spec.files         = `git ls-files`.split($/)

@@ -83,15 +83,26 @@ Notice that I have not specified password. Chamois currently works only with key
 
 ### Rules
 
-Rules define which files to upload. Chamois works in concert with git, so only tracked files will be deployed, but you can further restrict what files should be uploaded to target, since e.g. your API server doesn't full presentation code. Thanks to this, deployment should be faster and safer.
+Rules control which files will be uploaded to different targets. You can use 3 types of rules: `exclude`, `include`, `rename`.
+
+> `exclude` and `include` rules are lists, `rename` is a map
+
+You can use `*` and `/` wildcards. They will be translated to following regexps: `.*`, `(^|/)` respectively.
 
 `rules.yaml` example
 
 ```
+common:
+  exclude:
+    - "/."
+
 prod:
   exclude:
     - _deploy/
     - "*.sql"
+
+  rename:
+    "config.prod.php": "config.prod"
 
 front:
   exclude:
@@ -104,5 +115,3 @@ api:
     - classes/
 
 ```
-
-This file contains definitions of 3 rulesets: `prod`, `front` and `api`. Each ruleset takes `exclude` or `include` rules, which should be self-explanatory. Notice you may use asterisk (*) as a wildcard.
