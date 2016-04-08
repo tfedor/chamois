@@ -102,7 +102,8 @@ module Chamois
           ruleset = rules_config[rule]
           rules['exclude'].concat ruleset['exclude'] if ruleset.key? 'exclude'
           rules['include'].concat ruleset['include'] if ruleset.key? 'include'
-          rules['rename'].merge ruleset['rename'] if ruleset.key? 'rename'
+          rules['include'].concat ruleset['rename'].keys if ruleset.key? 'rename'
+          rules['rename'].merge! ruleset['rename'] if ruleset.key? 'rename'
         end
 
         deploy_files = deploy_map(matching_files(files, rules), rules['rename'])
