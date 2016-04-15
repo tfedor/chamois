@@ -87,6 +87,8 @@ module Chamois
       fail 'Release already exists' if @session.exists?('releases/' + release + '/')
 
       # get files to deploy
+      required_dirs = {}
+
       if @session.rules.empty?
         deploy_files = deploy_map(files.to_set, {})
         Msg.info('No rules set for this target, uploading all files')
@@ -94,7 +96,7 @@ module Chamois
         rules = {
           'exclude' => [],
           'include' => [],
-          'rename' => {}
+          'rename' => {},
         }
 
         @session.rules.each do |rule|
@@ -104,6 +106,7 @@ module Chamois
           rules['include'].concat ruleset['include'] if ruleset.key? 'include'
           rules['include'].concat ruleset['rename'].keys if ruleset.key? 'rename'
           rules['rename'].merge! ruleset['rename'] if ruleset.key? 'rename'
+          required_dirs.merge!  ruleset['dirs'] if ruleset.key? 'dirs'
         end
 
         deploy_files = deploy_map(matching_files(files, rules), rules['rename'])
@@ -116,6 +119,11 @@ module Chamois
 
       release_dir = 'releases/' + release + '/'
       @session.make_dir(release_dir)
+
+      # make required dirs with correct permissions
+      required_dirs.each do |d, p|
+        @session.make_dir(release_dir + d, {permissions: p})
+      end
 
       # upload files
       @session.upload(deploy_files, release_dir)

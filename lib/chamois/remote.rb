@@ -69,11 +69,13 @@ module Chamois
       end
     end
 
-    def make_dir(dir)
-      Msg.info("#{@name}: Creating #{path dir}", ' ... ')
+    def make_dir(dir, attrs={})
+      msg_attrs = ''
+      msg_attrs = " #{attrs}" unless attrs.empty?
+      Msg.info("#{@name}: Creating #{path dir}#{msg_attrs}", ' ... ')
 
       begin
-        @sess.sftp.mkdir!(path dir)
+        @sess.sftp.mkdir!(path(dir), attrs)
         Msg.ok
       rescue Net::SFTP::StatusException => e
         Msg.fail
