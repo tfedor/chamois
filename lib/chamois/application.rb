@@ -14,7 +14,7 @@ module Chamois
     private
 
     def files
-      Dir['**/*'].reject { |f| File.directory? f }
+      Dir.glob('**/{*,.*}').reject { |f| File.directory? f }
     end
 
     def read_config(path)
